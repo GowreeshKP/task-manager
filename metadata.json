@@ -1,0 +1,6 @@
+{
+  "name": "Task Manager",
+  "description": "A Google Keep-inspired Task Manager with rich text editing, custom task colors, and Gemini AI auto-generation of descriptions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
