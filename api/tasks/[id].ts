@@ -5,20 +5,41 @@ import { getSession } from "../_lib/session";
 async function resolveUser(req: VercelRequest) {
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith("Bearer ")) {
-    const session = await getSession(authHeader.split(" ")[1]);
-    if (session) return session;
+    try {
+      const session = await getSession(authHeader.split(" ")[1]);
+      if (session) return session;
+    } catch {
+      // session lookup failed — fall through to anonymous
+    }
   }
   return { userId: "anonymous", username: "anonymous" };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  await connectDB();
-  const { userId } = await resolveUser(req);
+  // Top-level try-catch so any crash returns JSON, not an empty 500
+  try {
+    await connectDB();
+  } catch (err: any) {
+    return res.status(500).json({ error: `DB connection failed: ${err.message}` });
+  }
+
+  let userId = "anonymous";
+  try {
+    const u = await resolveUser(req);
+    userId = u.userId;
+  } catch {
+    // session resolution failed — continue as anonymous
+  }
+
   const { id } = req.query as { id: string };
+
+  if (!id) {
+    return res.status(400).json({ error: "Task ID is required" });
+  }
 
   // ── PUT /api/tasks/:id ──────────────────────────────────────────────────────
   if (req.method === "PUT") {
-    const { title, description, status, color } = req.body;
+    const { title, description, status, color } = req.body || {};
     try {
       const task = await TaskModel.findById(id);
       if (!task) return res.status(404).json({ error: "Task not found" });

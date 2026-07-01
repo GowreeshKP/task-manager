@@ -5,15 +5,30 @@ import { getSession } from "../_lib/session";
 async function resolveUser(req: VercelRequest) {
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith("Bearer ")) {
-    const session = await getSession(authHeader.split(" ")[1]);
-    if (session) return session;
+    try {
+      const session = await getSession(authHeader.split(" ")[1]);
+      if (session) return session;
+    } catch {
+      // session lookup failed — fall through to anonymous
+    }
   }
   return { userId: "anonymous", username: "anonymous" };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  await connectDB();
-  const { userId } = await resolveUser(req);
+  try {
+    await connectDB();
+  } catch (err: any) {
+    return res.status(500).json({ error: `DB connection failed: ${err.message}` });
+  }
+
+  let userId = "anonymous";
+  try {
+    const u = await resolveUser(req);
+    userId = u.userId;
+  } catch {
+    // session resolution failed — continue as anonymous
+  }
 
   // ── GET /api/tasks ──────────────────────────────────────────────────────────
   if (req.method === "GET") {
@@ -27,7 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── POST /api/tasks ─────────────────────────────────────────────────────────
   if (req.method === "POST") {
-    const { title, description, status, color } = req.body;
+    const { title, description, status, color } = req.body || {};
     if (!title) return res.status(400).json({ error: "Title is required" });
 
     const validatedStatus = ["pending", "in-progress", "done"].includes(status)
