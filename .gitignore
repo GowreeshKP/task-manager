@@ -6,3 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local JSON database fallback (dev only)
+db_tasks.json
+db_users.json
