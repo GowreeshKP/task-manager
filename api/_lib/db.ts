@@ -1,10 +1,6 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error("Please define the MONGODB_URI environment variable.");
-}
+const MONGODB_URI = process.env.MONGODB_URI;
 
 // Extend global to cache the connection across serverless hot-reloads
 declare global {
@@ -17,6 +13,10 @@ if (!global._mongooseCache) {
 }
 
 export async function connectDB(): Promise<typeof mongoose> {
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI environment variable is not defined.");
+  }
+
   if (global._mongooseCache.conn) {
     return global._mongooseCache.conn;
   }
