@@ -1,4 +1,4 @@
-# Task Manager 3D
+# Task Manager 
 
 A short full-stack task manager built with React, Express, TypeScript, and Vite.
 
@@ -34,13 +34,17 @@ Open the app at `http://localhost:3000`.
 - Tailwind CSS
 - `@google/genai` for Gemini integration
 - Local JSON fallback when MongoDB is unavailable
+ 
+  ## AI Tools Used 
+  -Firebases
+  -antigravity IDE
 
 ## Assumptions
 
 - Node.js is installed
 - `.env.local` contains valid keys
 - MongoDB is optional; the app will fallback to built-in JSON storage if it cannot connect
-- The development server listens on port `3000`
+
 
 ## Scripts
 
